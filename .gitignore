@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Testing coverage
+coverage/
+
+# Production
+dist/
+
+# Logs (created during tests and runtime)
+*-logs/
+logs/
+
+# Misc
+.DS_Store
+
+# Debug
+pnpm-debug.log*
+
+# Local env files
+.env
+.env.development
+.env.production
+
+# Typescript
+*.tsbuildinfo
+*.build.json
+
+# IDE
+.cursor/*
+

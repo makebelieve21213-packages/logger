@@ -1,0 +1,62 @@
+# Исходный код (публикуется только dist)
+src/
+*.ts
+!*.d.ts
+
+# Тесты
+**/__tests__/
+**/*.spec.ts
+**/*.test.ts
+jest.config.ts
+coverage/
+
+# Документация разработки
+llms.txt
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Конфигурация разработки
+tsconfig.json
+tsconfig.tsbuildinfo
+eslint.config.ts
+.prettierrc
+.prettierignore
+
+# Логи
+logs/
+test-logs/
+custom-logs/
+temp-absolute-logs/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+
+# Зависимости (устанавливаются при установке пакета)
+node_modules/
+pnpm-lock.yaml
+
+# Временные файлы
+*.log
+*.tmp
+.cache/

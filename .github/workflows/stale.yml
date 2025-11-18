@@ -1,0 +1,56 @@
+name: Mark stale issues and PRs
+
+on:
+  schedule:
+    # Запускается каждый день в 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          # Issues
+          stale-issue-message: |
+            Это issue было автоматически помечено как stale (неактивное), потому что не было активности в течение 60 дней.
+            
+            Если это issue все еще актуально, пожалуйста, оставьте комментарий или обновите его. В противном случае оно будет закрыто через 7 дней.
+            
+            Спасибо за понимание!
+          close-issue-message: |
+            Это issue было автоматически закрыто из-за отсутствия активности.
+            
+            Если вы считаете, что это было сделано по ошибке, пожалуйста, откройте новое issue с подробным описанием проблемы.
+          days-before-issue-stale: 60
+          days-before-issue-close: 7
+          stale-issue-label: "stale"
+          exempt-issue-labels: "pinned,security,bug,enhancement"
+          
+          # Pull Requests
+          stale-pr-message: |
+            Этот PR был автоматически помечен как stale (неактивный), потому что не было активности в течение 30 дней.
+            
+            Если этот PR все еще актуален, пожалуйста, обновите его или оставьте комментарий. В противном случае он будет закрыт через 7 дней.
+            
+            Спасибо за понимание!
+          close-pr-message: |
+            Этот PR был автоматически закрыт из-за отсутствия активности.
+            
+            Если вы хотите продолжить работу над этим PR, пожалуйста, откройте новый PR с обновленным кодом.
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          stale-pr-label: "stale"
+          exempt-pr-labels: "pinned,security,work-in-progress"
+          
+          # Общие настройки
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          operations-per-run: 30
+          remove-stale-when-updated: true
+          ascending: true
+
