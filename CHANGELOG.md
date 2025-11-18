@@ -5,6 +5,15 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/),
 и этот проект придерживается [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [1.0.1] - 2025-11-18
+
+### Исправлено
+- Исправлен конфликт между Prettier и ESLint по максимальной длине строки (установлен printWidth: 95 в Prettier)
+
+### Изменено
+- Обновлен workflow для автоматической публикации в npm registry при создании GitHub Release или push тега
+- Версия в package.json теперь автоматически синхронизируется с версией тега при публикации
+
 ## [1.0.0] - 2025-11-18
 
 ### Добавлено
