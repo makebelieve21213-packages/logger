@@ -3,6 +3,9 @@ name: Publish to npm
 on:
   release:
     types: [created]
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   publish:
@@ -13,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Нужно для получения тегов
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -29,14 +34,44 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format
+
       - name: Build
         run: pnpm build
 
       - name: Run tests
         run: pnpm test:coverage
 
+      - name: Extract version from tag/release
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # При push тега - извлекаем версию из тега (например, v1.0.1 -> 1.0.1)
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            # При release - извлекаем версию из тега release (например, v1.0.1 -> 1.0.1)
+            VERSION=${GITHUB_EVENT_RELEASE_TAG_NAME#v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Update package.json version
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          echo "Updated package.json version to $VERSION"
+
       - name: Publish to npm
-        run: pnpm publish --access public --no-git-checks
+        run: pnpm publish --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

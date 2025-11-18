@@ -1,6 +1,6 @@
 {
   "name": "@packages/logger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared Winston-based logger for NestJS microservices",
   "type": "module",
   "main": "dist/index.js",
