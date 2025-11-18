@@ -1,4 +1,8 @@
-import type { InjectionToken, OptionalFactoryDependency, ModuleMetadata } from "@nestjs/common";
+import type {
+	InjectionToken,
+	OptionalFactoryDependency,
+	ModuleMetadata,
+} from "@nestjs/common";
 
 // Уровни логирования
 export type LogLevel = "error" | "warn" | "log" | "debug";

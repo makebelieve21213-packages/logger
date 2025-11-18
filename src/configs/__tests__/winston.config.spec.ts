@@ -8,7 +8,12 @@ import {
 	createWinstonLogger,
 } from "src/configs/winston.config";
 import LoggerError from "src/errors/logger.error";
-import { createLogger, transports, type Logger, type transport as WinstonTransport } from "winston";
+import {
+	createLogger,
+	transports,
+	type Logger,
+	type transport as WinstonTransport,
+} from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 
 import type { LoggerConfig } from "src/types/logger.types";
@@ -251,16 +256,18 @@ describe("Winston Config", () => {
 			// (в file-stream-rotator)
 			let callCount = 0;
 			const originalExistsSync = fs.existsSync;
-			const existsSyncSpy = jest.spyOn(fs, "existsSync").mockImplementation((...args: unknown[]) => {
-				callCount++;
-				// Первый вызов - в ensureLogDirectory, возвращаем false
-				// Остальные вызовы - в file-stream-rotator, возвращаем true
-				// (директория уже создана)
-				if (callCount === 1) {
-					return false;
-				}
-				return originalExistsSync.apply(fs, args as [string]);
-			});
+			const existsSyncSpy = jest
+				.spyOn(fs, "existsSync")
+				.mockImplementation((...args: unknown[]) => {
+					callCount++;
+					// Первый вызов - в ensureLogDirectory, возвращаем false
+					// Остальные вызовы - в file-stream-rotator, возвращаем true
+					// (директория уже создана)
+					if (callCount === 1) {
+						return false;
+					}
+					return originalExistsSync.apply(fs, args as [string]);
+				});
 			const mkdirSyncSpy = jest.spyOn(fs, "mkdirSync");
 
 			const config: LoggerConfig = {

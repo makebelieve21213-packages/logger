@@ -96,14 +96,16 @@ describe("constants", () => {
 			// Мокаем existsSync для dist
 			const fs = require("fs");
 			const originalExistsSync = fs.existsSync;
-			const existsSyncSpy = jest.spyOn(fs, "existsSync").mockImplementation((...args: unknown[]) => {
-				const path = args[0] as string;
-				// Возвращаем false для dist, но true для package.json и других файлов
-				if (typeof path === "string" && path.includes("dist") && !path.includes("package.json")) {
-					return false;
-				}
-				return originalExistsSync.apply(fs, args as [string]);
-			});
+			const existsSyncSpy = jest
+				.spyOn(fs, "existsSync")
+				.mockImplementation((...args: unknown[]) => {
+					const path = args[0] as string;
+					// Возвращаем false для dist, но true для package.json и других файлов
+					if (typeof path === "string" && path.includes("dist") && !path.includes("package.json")) {
+						return false;
+					}
+					return originalExistsSync.apply(fs, args as [string]);
+				});
 
 			jest.resetModules();
 			const { getDefaultLogDir: getDefaultLogDirProd } = await import("src/utils/constants");
