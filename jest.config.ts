@@ -1,4 +1,4 @@
-// Конфигурация Jest для @packages/logger
+// Конфигурация Jest для @makebelieve21213-packages/logger
 export default {
 	// Verbose output для детальных логов
 	verbose: true,

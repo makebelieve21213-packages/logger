@@ -1,5 +1,5 @@
 {
-  "name": "@packages/logger",
+  "name": "@makebelieve21213-packages/logger",
   "version": "1.0.1",
   "description": "Shared Winston-based logger for NestJS microservices",
   "type": "module",

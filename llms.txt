@@ -1,4 +1,4 @@
-# @packages/logger - LLM Context
+# @makebelieve21213-packages/logger - LLM Context
 
 ## Краткое описание
 Универсальный пакет логирования для микросервисов NestJS на базе Winston. Использует Winston для записи логов в файлы с ротацией и опциональной отправкой в Logstash. Полностью совместим с экосистемой NestJS. **Transient Scope** - каждый сервис получает свой экземпляр с индивидуальным контекстом.
@@ -6,7 +6,7 @@
 ## Архитектура пакета
 
 ```
-packages/logger/
+packages-packages/logger/
 ├── src/
 │   ├── configs/
 │   │   ├── winston.config.ts         # Конфигурация Winston транспортов
@@ -242,7 +242,7 @@ interface Logger extends NestLoggerService {
 - Использует `mkdirSync` с `recursive: true`
 - Выбрасывает `LoggerError` при ошибке создания
 
-### errors/logger.error.ts
+### errors-packages/logger.error.ts
 **LoggerError** - кастомная ошибка:
 - Наследуется от `Error`
 - Сохраняет `cause` для цепочки ошибок
@@ -256,7 +256,7 @@ interface Logger extends NestLoggerService {
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from '@packages/logger';
+import { LoggerModule } from '@packages-packages/logger';
 
 @Module({
   imports: [
@@ -281,7 +281,7 @@ export class AppModule {}
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import LoggerService from '@packages/logger';
+import LoggerService from '@packages-packages/logger';
 
 @Injectable()
 export default class MyService {
@@ -306,7 +306,7 @@ export default class MyService {
 
 ```typescript
 import { NestFactory } from '@nestjs/core';
-import LoggerService from '@packages/logger';
+import LoggerService from '@packages-packages/logger';
 import AppModule from './app/app.module';
 
 async function bootstrap() {
@@ -465,7 +465,7 @@ const mockLogger = {
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from '@packages/logger';
+import { LoggerModule } from '@packages-packages/logger';
 
 @Module({
   imports: [
@@ -489,7 +489,7 @@ export class AppModule {}
 **Сервис:**
 ```typescript
 import { Injectable } from '@nestjs/common';
-import LoggerService from '@packages/logger';
+import LoggerService from '@packages-packages/logger';
 
 @Injectable()
 export default class MyService {

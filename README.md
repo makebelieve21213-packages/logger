@@ -1,4 +1,4 @@
-# @packages/logger
+# @makebelieve21213-packages/logger
 
 Универсальный пакет логирования для микросервисов NestJS на базе Winston с поддержкой записи логов в файлы с ротацией и опциональной отправкой в Logstash.
 
@@ -19,14 +19,14 @@
 ## 📦 Установка
 
 ```bash
-pnpm add @packages/logger
+pnpm add @makebelieve21213-packages/logger
 ```
 
 Или добавьте в `package.json` вашего микросервиса:
 ```json
 {
   "dependencies": {
-    "@packages/logger": "workspace:*"
+    "@makebelieve21213-packages/logger": "workspace:*"
   }
 }
 ```
@@ -38,7 +38,7 @@ pnpm add @packages/logger
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from '@packages/logger';
+import { LoggerModule } from '@makebelieve21213-packages/logger';
 
 @Module({
   imports: [
@@ -65,7 +65,7 @@ export class AppModule {}
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import LoggerService from '@packages/logger';
+import LoggerService from '@makebelieve21213-packages/logger';
 
 @Injectable()
 export default class UserService {
@@ -111,7 +111,7 @@ export default class UserService {
 ```typescript
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import LoggerService from '@packages/logger';
+import LoggerService from '@makebelieve21213-packages/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -183,7 +183,7 @@ constructor(private readonly logger: LoggerService) {
 ## 📁 Структура пакета
 
 ```
-packages/logger/
+packages-packages/logger/
 ├── src/
 │   ├── configs/
 │   │   ├── __tests__/
@@ -284,7 +284,7 @@ LoggerModule.forRootAsync({
 Пакет имеет 100% покрытие тестами:
 
 ```bash
-cd packages/logger
+cd packages-packages/logger
 pnpm test
 pnpm test:coverage
 ```
@@ -293,7 +293,7 @@ pnpm test:coverage
 
 ```typescript
 import { Test } from '@nestjs/testing';
-import LoggerService from '@packages/logger';
+import LoggerService from '@makebelieve21213-packages/logger';
 
 const mockLogger = {
   log: jest.fn(),
@@ -432,7 +432,7 @@ docker logs logger-package
 docker logs -f logger-package
 
 # Логи из файлов (если смонтирована директория)
-tail -f logs/logger-service/$(date +%Y-%m-%d).log
+tail -f logs-packages/logger-service/$(date +%Y-%m-%d).log
 ```
 
 ### Остановка и удаление
