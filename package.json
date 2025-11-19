@@ -1,6 +1,6 @@
 {
   "name": "@makebelieve21213-packages/logger",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Shared Winston-based logger for NestJS microservices",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,7 +9,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "default": "./dist/index.js"
     }
   },
   "repository": {
@@ -34,7 +34,7 @@
     "pnpm": ">=10.18.0"
   },
   "scripts": {
-    "build": "pnpm run clean && tsc --build && tsc-alias",
+    "build": "pnpm run clean && tsc --build && tsc-alias && tsc-esm-fix",
     "clean": "rimraf dist test-logs tsconfig.tsbuildinfo",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -69,6 +69,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
+    "tsc-esm-fix": "^3.1.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.2"
   },

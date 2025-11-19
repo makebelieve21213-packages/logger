@@ -65,6 +65,25 @@ describe("constants", () => {
 			delete process.env.JEST_WORKER_ID;
 			delete process.env.NODE_ENV;
 
+			// Мокаем existsSync для dist
+			const fs = require("fs");
+			const originalExistsSync = fs.existsSync;
+			const existsSyncSpy = jest
+				.spyOn(fs, "existsSync")
+				.mockImplementation((...args: unknown[]) => {
+					const path = args[0] as string;
+					// Возвращаем true для dist, но используем оригинальную функцию для остального
+					if (
+						typeof path === "string" &&
+						path.includes("dist") &&
+						!path.includes("package.json") &&
+						!path.includes("logs")
+					) {
+						return true;
+					}
+					return originalExistsSync.apply(fs, args as [string]);
+				});
+
 			jest.resetModules();
 
 			const { getDefaultLogDir: getDefaultLogDirProd } = await import("src/utils/constants");
@@ -76,6 +95,7 @@ describe("constants", () => {
 			expect(logDir).toMatch(/[\\\/]dist[\\\/]logs$/);
 			expect(logDir).not.toMatch(/[\\\/]test-logs[\\\/]/);
 
+			existsSyncSpy.mockRestore();
 			if (originalJestWorkerId) {
 				process.env.JEST_WORKER_ID = originalJestWorkerId;
 			}
