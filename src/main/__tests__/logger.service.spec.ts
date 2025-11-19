@@ -163,7 +163,6 @@ describe("LoggerService", () => {
 				trace: "stack trace",
 			});
 		});
-
 	});
 
 	describe("warn", () => {
@@ -184,7 +183,6 @@ describe("LoggerService", () => {
 				service: "test-service",
 			});
 		});
-
 	});
 
 	describe("debug", () => {
@@ -205,7 +203,6 @@ describe("LoggerService", () => {
 				service: "test-service",
 			});
 		});
-
 	});
 
 	describe("verbose", () => {

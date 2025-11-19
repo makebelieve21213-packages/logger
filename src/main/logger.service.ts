@@ -1,10 +1,7 @@
 import { Injectable, Scope } from "@nestjs/common";
 import { createWinstonLogger } from "src/configs/winston.config";
 
-import type {
-	LoggerService as NestLoggerService,
-	OnModuleDestroy,
-} from "@nestjs/common";
+import type { LoggerService as NestLoggerService, OnModuleDestroy } from "@nestjs/common";
 import type Logger from "src/interfaces/logger.interface";
 import type { LoggerConfig } from "src/types/logger.types";
 import type { Logger as WinstonLogger } from "winston";
@@ -15,9 +12,7 @@ import type { Logger as WinstonLogger } from "winston";
  * Scope.TRANSIENT - каждый сервис получает свой экземпляр с контекстом
  */
 @Injectable({ scope: Scope.TRANSIENT })
-export default class LoggerService
-	implements Logger, NestLoggerService, OnModuleDestroy
-{
+export default class LoggerService implements Logger, NestLoggerService, OnModuleDestroy {
 	private readonly winstonLogger: WinstonLogger;
 	private readonly serviceName: string;
 
