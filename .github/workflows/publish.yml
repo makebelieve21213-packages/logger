@@ -43,28 +43,63 @@ jobs:
       - name: Run tests
         run: pnpm test:coverage
 
-      - name: Extract version from release tag
-        id: get_version
-        run: |
-          # Извлекаем версию из тега release (например, v1.0.2 -> 1.0.2)
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          VERSION=${TAG_NAME#v}
-          echo "Tag name: $TAG_NAME"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
-
       - name: Update package.json version
         run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          node -e "
+          # Получаем тег из события релиза
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          
+          # Если тег пустой, пробуем получить из GITHUB_REF
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+            echo "Using GITHUB_REF tag: $TAG_NAME"
+          else
+            echo "Using release tag: $TAG_NAME"
+          fi
+          
+          if [ -z "$TAG_NAME" ]; then
+            echo "ERROR: Cannot determine release tag!"
+            echo "GITHUB_REF: $GITHUB_REF"
+            echo "github.event.release.tag_name: ${{ github.event.release.tag_name }}"
+            exit 1
+          fi
+          
+          # Удаляем префикс 'v' если есть (v1.0.2 -> 1.0.2)
+          VERSION=${TAG_NAME#v}
+          
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: Version is empty after removing 'v' prefix!"
+            echo "Original tag: $TAG_NAME"
+            exit 1
+          fi
+          
+          echo "Updating package.json version to: $VERSION"
+          
+          # Обновляем версию в package.json через переменную окружения
+          VERSION="$VERSION" node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = process.env.VERSION;
+            const newVersion = process.env.VERSION;
+            if (!newVersion) {
+              console.error('ERROR: VERSION environment variable is not set');
+              process.exit(1);
+            }
+            console.log('Current version:', pkg.version);
+            console.log('New version:', newVersion);
+            pkg.version = newVersion;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('✅ Updated version to:', newVersion);
           "
-          echo "Updated package.json version to $VERSION"
-        env:
-          VERSION: ${{ steps.get_version.outputs.version }}
+          
+          # Проверяем что версия обновилась
+          ACTUAL_VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "Actual package.json version: $ACTUAL_VERSION"
+          
+          if [ "$ACTUAL_VERSION" != "$VERSION" ]; then
+            echo "ERROR: Version mismatch! Expected: $VERSION, Got: $ACTUAL_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Successfully updated version to $VERSION"
 
       - name: Publish to npm
         run: pnpm publish --access public --no-git-checks --provenance
