@@ -1,5 +1,4 @@
 import * as winstonConfig from "src/configs/winston.config";
-import LoggerError from "src/errors/logger.error";
 import LoggerService from "src/main/logger.service";
 
 import type { LoggerConfig } from "src/types/logger.types";
@@ -62,7 +61,6 @@ describe("LoggerService", () => {
 			.mockReturnValue(mockWinstonLoggerInstance as unknown as Logger);
 
 		loggerService = new LoggerService(mockConfig);
-		loggerService.onModuleInit(); // Инициализируем logger
 		mockWinstonLogger = mockWinstonLoggerInstance;
 	});
 
@@ -80,36 +78,15 @@ describe("LoggerService", () => {
 			const newLogger = new LoggerService(mockConfig);
 			expect(newLogger).toBeDefined();
 		});
-	});
 
-	describe("onModuleInit", () => {
-		it("должен создать Winston logger при инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
+		it("должен создать Winston logger в конструкторе", () => {
 			const createSpy = jest.spyOn(winstonConfig, "createWinstonLogger");
+			createSpy.mockClear(); // Очищаем вызовы из beforeEach
 
-			newLogger.onModuleInit();
+			new LoggerService(mockConfig);
 
 			expect(createSpy).toHaveBeenCalledWith(mockConfig);
-		});
-
-		it("должен позволить использовать logger после инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
-			newLogger.onModuleInit();
-
-			expect(() => {
-				newLogger.log("test message");
-			}).not.toThrow();
-		});
-
-		it("должен выбрасывать LoggerError при использовании до инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
-
-			expect(() => {
-				newLogger.log("test message");
-			}).toThrow(LoggerError);
-			expect(() => {
-				newLogger.log("test message");
-			}).toThrow("Logger not initialized");
+			expect(createSpy).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -187,16 +164,6 @@ describe("LoggerService", () => {
 			});
 		});
 
-		it("должен выбрасывать LoggerError при использовании до инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
-
-			expect(() => {
-				newLogger.error("error message");
-			}).toThrow(LoggerError);
-			expect(() => {
-				newLogger.error("error message");
-			}).toThrow("Logger not initialized");
-		});
 	});
 
 	describe("warn", () => {
@@ -218,16 +185,6 @@ describe("LoggerService", () => {
 			});
 		});
 
-		it("должен выбрасывать LoggerError при использовании до инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
-
-			expect(() => {
-				newLogger.warn("warning message");
-			}).toThrow(LoggerError);
-			expect(() => {
-				newLogger.warn("warning message");
-			}).toThrow("Logger not initialized");
-		});
 	});
 
 	describe("debug", () => {
@@ -249,16 +206,6 @@ describe("LoggerService", () => {
 			});
 		});
 
-		it("должен выбрасывать LoggerError при использовании до инициализации", () => {
-			const newLogger = new LoggerService(mockConfig);
-
-			expect(() => {
-				newLogger.debug("debug message");
-			}).toThrow(LoggerError);
-			expect(() => {
-				newLogger.debug("debug message");
-			}).toThrow("Logger not initialized");
-		});
 	});
 
 	describe("verbose", () => {
@@ -277,74 +224,11 @@ describe("LoggerService", () => {
 		});
 	});
 
-	describe("close", () => {
-		it("должен закрыть Winston logger и зарегистрировать обработчик finish", () => {
-			// Вызываем close() - не ждем завершения Promise
-			loggerService.close();
-
-			// Проверяем что методы были вызваны
-			expect(mockWinstonLogger.close).toHaveBeenCalled();
-			expect(mockWinstonLogger.on).toHaveBeenCalledWith("finish", expect.any(Function));
-		});
-
-		it("должен корректно создать Promise при вызове close()", () => {
-			const closePromise = loggerService.close();
-
-			// Проверяем что возвращается Promise
-			expect(closePromise).toBeInstanceOf(Promise);
-			expect(mockWinstonLogger.close).toHaveBeenCalled();
-			expect(mockWinstonLogger.on).toHaveBeenCalledWith("finish", expect.any(Function));
-		});
-
-		it("должен резолвить Promise когда событие finish срабатывает", async () => {
-			// Создаем мок который вызовет callback сразу
-			mockWinstonLogger.on.mockImplementationOnce((event: string, callback: () => void) => {
-				if (event === "finish") {
-					// Вызываем callback сразу чтобы Promise резолвился
-					process.nextTick(callback);
-				}
-				return mockWinstonLogger;
-			});
-
-			const closePromise = loggerService.close();
-
-			// Ждем резолва Promise
-			await expect(closePromise).resolves.toBeUndefined();
-			expect(mockWinstonLogger.close).toHaveBeenCalled();
-		});
-
-		it("должен вернуть undefined если logger не инициализирован", async () => {
-			const newLogger = new LoggerService(mockConfig);
-
-			const result = await newLogger.close();
-
-			expect(result).toBeUndefined();
-			expect(mockWinstonLogger.close).not.toHaveBeenCalled();
-		});
-	});
-
 	describe("onModuleDestroy", () => {
-		it("должен вызвать метод close() при уничтожении модуля", async () => {
-			const closeSpy = jest.spyOn(loggerService, "close").mockResolvedValue();
+		it("должен закрыть Winston logger при уничтожении модуля", () => {
+			loggerService.onModuleDestroy();
 
-			await loggerService.onModuleDestroy();
-
-			expect(closeSpy).toHaveBeenCalledTimes(1);
-		});
-
-		it("должен корректно закрыть Winston logger при уничтожении модуля", async () => {
-			// Настраиваем мок для немедленного вызова callback
-			mockWinstonLogger.on.mockImplementationOnce((event: string, callback: () => void) => {
-				if (event === "finish") {
-					process.nextTick(callback);
-				}
-				return mockWinstonLogger;
-			});
-
-			await loggerService.onModuleDestroy();
-
-			expect(mockWinstonLogger.close).toHaveBeenCalled();
-			expect(mockWinstonLogger.on).toHaveBeenCalledWith("finish", expect.any(Function));
+			expect(mockWinstonLogger.close).toHaveBeenCalledTimes(1);
 		});
 	});
 });

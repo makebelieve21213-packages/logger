@@ -50,7 +50,7 @@ packages-packages/logger/
 - **Scope.TRANSIENT** - каждый сервис получает свой экземпляр
 - Индивидуальный контекст для каждого сервиса через `setContext()`
 - Реализует интерфейс `NestLoggerService` из `@nestjs/common`
-- Инициализируется через `onModuleInit()` - создает Winston logger
+- Winston logger создается автоматически в конструкторе
 - Graceful shutdown через `onModuleDestroy()` - закрывает все транспорты
 
 ### 2. LoggerModule (Global Module)
@@ -117,9 +117,9 @@ packages-packages/logger/
 ### logger.service.ts
 **Transient сервис**, реализует методы:
 
-**onModuleInit()** - инициализация
-- Создает Winston logger через `createWinstonLogger(config)`
-- Должен быть вызван перед использованием методов логирования
+**constructor(config: LoggerConfig)** - инициализация
+- Создает Winston logger через `createWinstonLogger(config)` в конструкторе
+- Logger готов к использованию сразу после создания экземпляра
 
 **setContext(context: string)** - установка контекста
 - Сохраняет контекст для всех последующих логов
@@ -364,9 +364,9 @@ bootstrap();
 - Winston logger создается внутри каждого экземпляра (но это нормально для thread-safety)
 
 ### Инициализация
-- `onModuleInit()` должен быть вызван перед использованием
-- NestJS автоматически вызывает `onModuleInit()` для сервисов с `OnModuleInit`
-- Если использовать logger до инициализации → `LoggerError`
+- Winston logger создается автоматически в конструкторе `LoggerService`
+- Logger готов к использованию сразу после создания экземпляра
+- Не требуется дополнительных вызовов методов инициализации
 
 ### Graceful Shutdown
 - `onModuleDestroy()` закрывает все транспорты Winston
@@ -430,16 +430,15 @@ const mockLogger = {
 1. **Логи не записываются в файл**
    - Проверьте права доступа к директории `{logDir}/{serviceName}`
    - Убедитесь, что уровень логирования НЕ `debug` (debug только в консоль)
-   - Проверьте, что `onModuleInit()` был вызван
 
 2. **Не отправляется в Logstash**
    - Проверьте `logstashHost` и `logstashPort` в конфигурации
    - Проверьте доступность Logstash сервера
    - Проверьте, что логируется уровень `error` (только error идут в Logstash)
 
-3. **Ошибка "Logger not initialized"**
-   - Убедитесь, что `onModuleInit()` был вызван
-   - Проверьте, что NestJS правильно инициализирует модуль
+3. **Проблемы с инициализацией**
+   - Logger инициализируется автоматически в конструкторе
+   - Убедитесь, что `LoggerService` создается через DI NestJS
 
 4. **Тесты падают**
    - Убедитесь, что Winston правильно замокан
