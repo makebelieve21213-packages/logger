@@ -57,10 +57,12 @@ jobs:
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$VERSION';
+            pkg.version = process.env.VERSION;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
           echo "Updated package.json version to $VERSION"
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
 
       - name: Publish to npm
         run: pnpm publish --access public --no-git-checks --provenance
