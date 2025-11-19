@@ -3,9 +3,6 @@ name: Publish to npm
 on:
   release:
     types: [created]
-  push:
-    tags:
-      - "v*.*.*"
 
 jobs:
   publish:
@@ -46,16 +43,11 @@ jobs:
       - name: Run tests
         run: pnpm test:coverage
 
-      - name: Extract version from tag/release
+      - name: Extract version from release tag
         id: get_version
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            # При push тега - извлекаем версию из тега (например, v1.0.1 -> 1.0.1)
-            VERSION=${GITHUB_REF#refs/tags/v}
-          else
-            # При release - извлекаем версию из тега release (например, v1.0.1 -> 1.0.1)
-            VERSION=${GITHUB_EVENT_RELEASE_TAG_NAME#v}
-          fi
+          # Извлекаем версию из тега release (например, v1.0.2 -> 1.0.2)
+          VERSION=${GITHUB_EVENT_RELEASE_TAG_NAME#v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
 
