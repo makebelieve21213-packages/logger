@@ -30,9 +30,7 @@ export function createFileTransport(config: LoggerConfig): transport {
 		 * Если указан абсолютный путь - используем его как есть
 		 * Если относительный - разрешаем относительно process.cwd()
 		 */
-		baseLogDir = isAbsolute(config.logDir)
-			? config.logDir
-			: resolve(process.cwd(), config.logDir);
+		baseLogDir = isAbsolute(config.logDir) ? config.logDir : resolve(process.cwd(), config.logDir);
 	} else {
 		/**
 		 * По умолчанию используем process.cwd()/logs

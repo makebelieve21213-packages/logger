@@ -13,9 +13,7 @@ export default class LoggerModule {
 	 * Регистрация модуля с динамическими опциями через useFactory
 	 * Позволяет инжектить зависимости для создания конфигурации
 	 */
-	static forRootAsync<T extends unknown[]>(
-		options: LoggerModuleAsyncOptions<T>
-	): DynamicModule {
+	static forRootAsync<T extends unknown[]>(options: LoggerModuleAsyncOptions<T>): DynamicModule {
 		const providers: Provider[] = [
 			{
 				provide: LOGGER_OPTIONS,
