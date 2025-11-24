@@ -1,269 +1,123 @@
-# @makebelieve21213-packages/logger - LLM Context
+# @makebelieve21213-packages/logger - Документация для ИИ
 
 ## Краткое описание
+
 Универсальный ESM пакет логирования для микросервисов NestJS на базе Winston. Использует Winston для записи логов в файлы с ротацией и опциональной отправкой в Logstash. Полностью совместим с экосистемой NestJS. **Transient Scope** - каждый сервис получает свой экземпляр с индивидуальным контекстом.
 
-## Технические детали пакета
-- **Тип пакета**: ESM (`"type": "module"` в package.json)
-- **Сборка**: TypeScript → tsc → tsc-alias → tsc-esm-fix
-- **Module Resolution**: `bundler` (для гибкой работы с ESM и post-build инструментами)
-- **Target**: ES2023
-- **Module**: ESNext
+## Архитектура
 
-## Архитектура пакета
+Пакет предоставляет:
+- **LoggerModule** - глобальный NestJS модуль для регистрации
+- **LoggerService** - сервис логирования с Transient scope
+
+## Структура пакета
 
 ```
-packages-packages/logger/
-├── src/
-│   ├── configs/
-│   │   ├── winston.config.ts         # Конфигурация Winston транспортов
-│   │   └── __tests__/
-│   │       └── winston.config.spec.ts
-│   ├── errors/
-│   │   ├── logger.error.ts           # Кастомная ошибка LoggerError
-│   │   └── __tests__/
-│   │       └── logger.error.spec.ts
-│   ├── interfaces/
-│   │   └── logger.interface.ts       # Интерфейс Logger (расширяет NestJS)
-│   ├── main/
-│   │   ├── logger.module.ts          # NestJS модуль (Global)
-│   │   ├── logger.service.ts         # Основной сервис логирования (Transient)
-│   │   └── __tests__/
-│   │       ├── logger.module.spec.ts
-│   │       └── logger.service.spec.ts
-│   ├── types/
-│   │   └── logger.types.ts            # TypeScript типы и интерфейсы
-│   ├── utils/
-│   │   ├── constants.ts              # Константы (LOGGER_OPTIONS, цвета)
-│   │   ├── directory.ts              # Утилиты для работы с директориями
-│   │   ├── formatters.ts             # Форматтеры для консоли и файлов
-│   │   └── __tests__/
-│   │       └── constants.spec.ts
-│   └── index.ts                      # Экспорты пакета
-├── dist/                             # Скомпилированный код
-└── logs/                             # Логи (создаются автоматически)
+src/
+├── configs/
+│   └── winston.config.ts         # Конфигурация Winston транспортов
+├── errors/
+│   └── logger.error.ts           # Кастомная ошибка LoggerError
+├── interfaces/
+│   └── logger.interface.ts       # Интерфейс Logger (расширяет NestJS)
+├── main/
+│   ├── logger.module.ts          # NestJS модуль (Global)
+│   └── logger.service.ts         # Основной сервис логирования (Transient)
+├── types/
+│   └── logger.types.ts           # TypeScript типы и интерфейсы
+├── utils/
+│   ├── constants.ts              # Константы
+│   ├── directory.ts              # Утилиты для работы с директориями
+│   └── formatters.ts             # Форматтеры для консоли и файлов
+└── index.ts                      # Экспорты пакета
 ```
 
-## Основные концепции
+## Основные компоненты
 
-### 1. LoggerService (Transient Scope)
-- **Scope.TRANSIENT** - каждый сервис получает свой экземпляр
-- Индивидуальный контекст для каждого сервиса через `setContext()`
-- Реализует интерфейс `NestLoggerService` из `@nestjs/common`
-- Winston logger создается автоматически в конструкторе
-- Graceful shutdown через `onModuleDestroy()` - закрывает все транспорты
+### LoggerService (Transient Scope)
 
-### 2. LoggerModule (Global Module)
-- Помечен как `@Global()` - доступен во всех модулях без повторного импорта
-- Регистрация через `forRootAsync()` с `useFactory`
-- Использует `LOGGER_OPTIONS` injection token для передачи конфигурации
-- Экспортирует `LoggerService` для инжекции в другие сервисы
+**Scope.TRANSIENT** - каждый сервис получает свой экземпляр с индивидуальным контекстом.
 
-### 3. Winston транспорты
+Методы:
+- `log(message, context?)` - info логи (консоль + файл)
+- `error(message, trace?, context?)` - ошибки (консоль + файл + Logstash)
+- `warn(message, context?)` - предупреждения (консоль + файл)
+- `debug(message, context?)` - отладка (только консоль, НЕ в файл)
+- `verbose(message, context?)` - alias для `log()`
+- `setContext(context)` - установка контекста
+- `close()` - graceful shutdown
+- `onModuleDestroy()` - закрытие транспортов
+
+Winston logger создается автоматически в конструкторе. Graceful shutdown через `onModuleDestroy()` закрывает все транспорты.
+
+### LoggerModule (Global Module)
+
+Помечен как `@Global()` - доступен во всех модулях без повторного импорта.
+
+Метод инициализации:
+- `forRootAsync(options)` - асинхронная инициализация через useFactory
+
+Параметры:
+- `useFactory: (deps) => LoggerConfig` - фабрика для создания конфигурации
+- `inject?: InjectionToken[]` - зависимости для инжекции в useFactory
+- `imports?: Module[]` - дополнительные модули для DI
+
+Опции (возвращаемые useFactory):
+- `serviceName: string` - имя сервиса (обязательно)
+- `maxFiles?: number` - дней хранения (по умолчанию 30)
+- `maxLinesPerFile?: number` - строк в файле (по умолчанию 10000)
+- `logstashHost?: string` - хост Logstash (опционально)
+- `logstashPort?: number` - порт Logstash (опционально)
+- `logDir?: string` - директория для логов (абсолютный или относительный путь)
+
+Экспортирует: `LoggerService`
+
+### Winston транспорты
+
 - **Console** - цветной вывод в консоль (все уровни)
-- **DailyRotateFile** - один транспорт для всех уровней info и выше
+- **DailyRotateFile** - запись в файл с ротацией
   - Ротация по дате (ежедневно) и по размеру (maxLinesPerFile)
   - Путь: `{logDir}/{serviceName}/{DATE}.log`
   - Уровень: `info` (логирует error, warn, info; НЕ логирует debug)
 - **Logstash** (опционально) - отправка логов в Logstash через TCP
+  - Только для уровня `error`
 
-### 4. Уровни логирования
+## Уровни логирования
+
 - `error` → консоль (красный) + файл + Logstash (если настроен)
 - `warn` → консоль (желтый) + файл
 - `log` (info) → консоль (зеленый) + файл
 - `debug` → только консоль (голубой), **НЕ в файл**
 - `verbose` → alias для `log()` (совместимость с NestJS)
 
-### 5. Разделение логов по микросервисам
-- Автоматическое создание подпапок: `{logDir}/{serviceName}/`
-- Каждый сервис пишет в свою директорию
-- Формат файлов: `{YYYY-MM-DD}.log` (один файл на день для всех уровней)
-- По умолчанию: `process.cwd()/logs/{serviceName}/`
-- Можно указать кастомный путь через `logDir` (абсолютный или относительный)
+## Структура файлов логов
 
-## Ключевые файлы
+- Путь по умолчанию: `process.cwd()/logs/{serviceName}/{YYYY-MM-DD}.log`
+- Кастомный путь: `{logDir}/{serviceName}/{YYYY-MM-DD}.log`
+- Автоматическое создание директорий
+- Один файл на день для всех уровней (error, warn, info)
+- Debug логи НЕ записываются в файл
 
-### winston.config.ts
-Создает Winston logger с транспортами:
-
-**createConsoleTransport()** - цветной вывод в консоль
-- Формат: `[service] timestamp [LEVEL] [context] message`
-- Цвета: error (красный), warn (желтый), info (зеленый), debug (голубой)
-- Все уровни логируются
-
-**createFileTransport(config)** - запись в файл с ротацией
-- Использует `winston-daily-rotate-file`
-- Ротация: по дате (ежедневно) + по размеру (maxLinesPerFile строк)
-- Путь определяется через `config.logDir`:
-  - Если `logDir` указан и абсолютный → используется как есть
-  - Если `logDir` указан и относительный → разрешается относительно `process.cwd()`
-  - Если `logDir` не указан → используется `process.cwd()/logs`
-- Финальный путь: `{baseLogDir}/{serviceName}/{DATE}.log`
-- Уровень: `info` (логирует error, warn, info; НЕ логирует debug)
-- Формат: JSON с полями `timestamp`, `level`, `service`, `context`, `message`, `...meta`
-- Автоматическое создание директорий через `ensureLogDirectory()`
-
-**createLogstashTransport(config)** - отправка в Logstash
-- Опциональный транспорт (если указаны `logstashHost` и `logstashPort`)
-- Использует `winston-logstash` с протоколом TCP
-- JSON формат, node_name = serviceName
-- Возвращает `null` если не настроен
-
-**createWinstonLogger(config)** - собирает все транспорты
-- Создает Winston logger с уровнем `debug`
-- Добавляет транспорты: Console, File, Logstash (если настроен)
-- defaultMeta: `{ service: config.serviceName }`
-
-### logger.service.ts
-**Transient сервис**, реализует методы:
-
-**constructor(config: LoggerConfig)** - инициализация
-- Создает Winston logger через `createWinstonLogger(config)` в конструкторе
-- Logger готов к использованию сразу после создания экземпляра
-
-**setContext(context: string)** - установка контекста
-- Сохраняет контекст для всех последующих логов
-- Можно переопределить передав context в методы логирования
-
-**log(message, context?)** - info логи
-- Вызывает `winstonLogger.info()`
-- Метаданные: `{ context, service }`
-- Консоль + файл
-
-**error(message, trace?, context?)** - ошибки
-- Вызывает `winstonLogger.error()`
-- Метаданные: `{ context, service, trace }`
-- Консоль + файл + Logstash (если настроен)
-
-**warn(message, context?)** - предупреждения
-- Вызывает `winstonLogger.warn()`
-- Метаданные: `{ context, service }`
-- Консоль + файл
-
-**debug(message, context?)** - отладка
-- Вызывает `winstonLogger.debug()`
-- Метаданные: `{ context, service }`
-- **Только консоль, НЕ в файл**
-
-**verbose(message, context?)** - alias для `log()`
-- Вызывает `this.log(message, context)`
-- Для совместимости с NestJS LoggerService
-
-**close()** - graceful shutdown
-- Закрывает Winston logger
-- Возвращает Promise, который резолвится после события `finish`
-- Если logger не инициализирован → возвращает `undefined`
-
-**onModuleDestroy()** - уничтожение модуля
-- Вызывает `close()` для закрытия всех транспортов
-- Важно для корректного закрытия TCP соединений и файловых дескрипторов
-
-**Важно**: Все методы логирования выбрасывают `LoggerError` если logger не инициализирован.
-
-### logger.module.ts
-**Global NestJS модуль**:
-
-**forRootAsync(options)** - регистрация модуля
-- `options.useFactory` - фабрика для создания `LoggerConfig`
-- `options.inject` - массив токенов для инжекции зависимостей (по умолчанию `[]`)
-- `options.imports` - массив модулей для импорта (опционально)
-- Создает два провайдера:
-  1. `LOGGER_OPTIONS` - конфигурация через `useFactory`
-  2. `LoggerService` - сервис с `Scope.TRANSIENT`, инжектит `LOGGER_OPTIONS`
-- Экспортирует `LoggerService`
-
-### logger.types.ts
-Типы и интерфейсы:
-
-**LogLevel** - `"error" | "warn" | "log" | "debug"`
-
-**LoggerConfig** - конфигурация логгера:
-```typescript
+Формат JSON в файлах:
+```json
 {
-  serviceName: string;              // Обязательно: имя сервиса
-  maxFiles?: number;                // Опционально: дней хранения (по умолчанию 30)
-  maxLinesPerFile?: number;         // Опционально: строк в файле (по умолчанию 10000)
-  logstashHost?: string;            // Опционально: хост Logstash
-  logstashPort?: number;            // Опционально: порт Logstash
-  logDir?: string;                  // Опционально: директория для логов (абсолютный или относительный путь)
+  "timestamp": "2024-01-15 10:30:45",
+  "level": "error",
+  "service": "api-service",
+  "context": "UserService",
+  "message": "Failed to create user",
+  "trace": "Error: Validation failed..."
 }
 ```
 
-**LogMetadata** - метаданные лога:
-```typescript
-{
-  timestamp: string;
-  level: LogLevel;
-  context?: string;
-  service: string;
-  message: string;
-  [key: string]: unknown;           // Дополнительные поля (trace, и т.д.)
-}
-```
+## Использование
 
-**LoggerModuleAsyncOptions** - опции для `forRootAsync`:
-```typescript
-{
-  useFactory: (...args: T) => LoggerConfig | Promise<LoggerConfig>;
-  inject?: (InjectionToken | OptionalFactoryDependency)[];
-  imports?: ModuleMetadata['imports'];
-}
-```
-
-### logger.interface.ts
-Интерфейс `Logger` расширяет `NestLoggerService`:
-```typescript
-interface Logger extends NestLoggerService {
-  log(message: string, context?: string): void;
-  error(message: string, trace?: string, context?: string): void;
-  warn(message: string, context?: string): void;
-  debug(message: string, context?: string): void;
-  verbose(message: string, context?: string): void;
-  setContext(context: string): void;
-}
-```
-
-### utils/constants.ts
-Константы:
-- `LOGGER_OPTIONS` - Symbol для injection token конфигурации
-- `colors` - ANSI escape codes для цветного вывода в консоль
-- `PACKAGE_ROOT` - корень пакета (находится через поиск package.json)
-- `getLogFolder()` - возвращает "test-logs" для тестов, "logs" для продакшена
-- `getDefaultLogDir()` - определяет директорию логов (используется в старых версиях, сейчас через logDir)
-
-### utils/formatters.ts
-Форматтеры для Winston:
-
-**consoleFormat** - формат для консоли:
-- Цветной вывод с ANSI escape codes
-- Формат: `[service] timestamp [LEVEL] [context] message`
-- Использует цвета из `constants.ts`
-
-**fileFormat** - формат для файлов:
-- JSON формат
-- Поля: `timestamp`, `level`, `service`, `context` (или "Application"), `message`, `...meta`
-
-### utils/directory.ts
-**ensureLogDirectory(logDir)** - создание директории логов
-- Синхронно создает директорию если её нет
-- Использует `mkdirSync` с `recursive: true`
-- Выбрасывает `LoggerError` при ошибке создания
-
-### errors-packages/logger.error.ts
-**LoggerError** - кастомная ошибка:
-- Наследуется от `Error`
-- Сохраняет `cause` для цепочки ошибок
-- Выводит ошибку в консоль при создании
-- Используется для всех ошибок в модуле логирования
-
-## Использование в коде
-
-### 1. Регистрация в AppModule
+### Регистрация в AppModule
 
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from '@packages-packages/logger';
+import { LoggerModule } from '@makebelieve21213-packages/logger';
 
 @Module({
   imports: [
@@ -271,11 +125,13 @@ import { LoggerModule } from '@packages-packages/logger';
     LoggerModule.forRootAsync<[ConfigService]>({
       useFactory: (configService: ConfigService) => ({
         serviceName: configService.get('SERVICE_NAME') || 'unknown-service',
-        maxFiles: configService.get('LOGGER_MAX_FILES') || 30,
-        maxLinesPerFile: configService.get('LOGGER_MAX_LINES_PER_FILE') || 10000,
+        maxFiles: 30,
+        maxLinesPerFile: 10000,
         logstashHost: configService.get('LOGSTASH_HOST'),
-        logstashPort: configService.get('LOGSTASH_PORT') ? parseInt(configService.get('LOGSTASH_PORT')) : undefined,
-        logDir: configService.get('LOGGER_LOG_DIR'), // Опционально
+        logstashPort: configService.get('LOGSTASH_PORT')
+          ? parseInt(configService.get('LOGSTASH_PORT'))
+          : undefined,
+        logDir: configService.get('LOGGER_LOG_DIR'),
       }),
       inject: [ConfigService],
     }),
@@ -284,11 +140,11 @@ import { LoggerModule } from '@packages-packages/logger';
 export class AppModule {}
 ```
 
-### 2. Инжекция в сервис
+### Инжекция в сервис
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import LoggerService from '@packages-packages/logger';
+import LoggerService from '@makebelieve21213-packages/logger';
 
 @Injectable()
 export default class MyService {
@@ -309,11 +165,11 @@ export default class MyService {
 }
 ```
 
-### 3. Использование в main.ts
+### Использование в main.ts
 
 ```typescript
 import { NestFactory } from '@nestjs/core';
-import LoggerService from '@packages-packages/logger';
+import LoggerService from '@makebelieve21213-packages/logger';
 import AppModule from './app/app.module';
 
 async function bootstrap() {
@@ -334,86 +190,61 @@ bootstrap();
 
 ## Важные детали реализации
 
-### Структура файлов логов
-- Путь по умолчанию: `process.cwd()/logs/{serviceName}/{YYYY-MM-DD}.log`
-- Кастомный путь: `{logDir}/{serviceName}/{YYYY-MM-DD}.log`
-- Автоматическое создание директорий
-- Один файл на день для всех уровней (error, warn, info)
-- Debug логи НЕ записываются в файл
+### Transient Scope
+- Каждый сервис получает свой экземпляр `LoggerService`
+- Индивидуальный контекст для каждого сервиса
+- Winston logger создается внутри каждого экземпляра
 
-### Формат JSON в файлах
-```json
-{
-  "timestamp": "2024-01-15 10:30:45",
-  "level": "error",
-  "service": "api-service",
-  "context": "UserService",
-  "message": "Failed to create user",
-  "trace": "Error: Validation failed\n    at UserService.create..."
-}
-```
+### Инициализация
+- Winston logger создается автоматически в конструкторе `LoggerService`
+- Logger готов к использованию сразу после создания экземпляра
+
+### Graceful Shutdown
+- `onModuleDestroy()` закрывает все транспорты Winston
+- Важно для корректного закрытия TCP соединений (Logstash) и файловых дескрипторов
 
 ### Ротация логов
 - По дате: каждый день создается новый файл
 - По размеру: новый файл создается каждые `maxLinesPerFile` строк
 - Автоочистка: старые файлы удаляются через `maxFiles` дней
 
-### Transient Scope
-- Каждый сервис получает свой экземпляр `LoggerService`
-- Индивидуальный контекст для каждого сервиса
-- Winston logger создается внутри каждого экземпляра (но это нормально для thread-safety)
+## Экспорты (index.ts)
 
-### Инициализация
-- Winston logger создается автоматически в конструкторе `LoggerService`
-- Logger готов к использованию сразу после создания экземпляра
-- Не требуется дополнительных вызовов методов инициализации
+Пакет экспортирует:
+- `LoggerModule` (default export)
+- `LoggerService` (default export)
+- `LoggerConfig` (тип)
+- `Logger` (интерфейс)
+- `LoggerError` (класс ошибки)
 
-### Graceful Shutdown
-- `onModuleDestroy()` закрывает все транспорты Winston
-- Важно для корректного закрытия TCP соединений (Logstash) и файловых дескрипторов
-- NestJS автоматически вызывает `onModuleDestroy()` при остановке приложения
+## Типичные сценарии использования
 
-### Алиасы src/*
-- Используются в исходном коде через `tsconfig.json` paths
-- После сборки заменяются на относительные пути через `tsc-alias`
-- Работают и в dev, и в production
+### Базовое использование
+1. Импортировать `LoggerModule.forRootAsync()` в AppModule
+2. Инжектировать `LoggerService` в сервисы
+3. Вызывать `setContext()` в конструкторе
+4. Использовать методы логирования
 
-### Сборка ESM пакета
-Процесс сборки включает три этапа:
-1. **tsc --build** - компиляция TypeScript в JavaScript
-2. **tsc-alias** - замена алиасов `src/*` на относительные пути
-3. **tsc-esm-fix** - добавление `.js` расширений к импортам для корректной работы ESM
+### С Logstash
+1. Указать `logstashHost` и `logstashPort` в конфигурации
+2. Логи уровня `error` автоматически отправляются в Logstash
 
-Это стандартный подход для ESM пакетов, когда используется TypeScript компилятор без bundler'а.
+### С кастомной директорией логов
+1. Указать `logDir` в конфигурации (абсолютный или относительный путь)
+2. Логи будут создаваться в указанной директории
 
-## Тестирование
+## Важные замечания
 
-### Покрытие тестами
-- `winston.config.spec.ts` - тесты транспортов Winston (100% покрытие)
-- `logger.service.spec.ts` - тесты методов LoggerService (100% покрытие)
-- `logger.module.spec.ts` - тесты регистрации модуля (100% покрытие)
-- `logger.error.spec.ts` - тесты LoggerError (100% покрытие)
-- `constants.spec.ts` - тесты утилит (100% покрытие)
-
-### Моки для тестирования
-```typescript
-const mockLogger = {
-  log: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-  verbose: jest.fn(),
-  setContext: jest.fn(),
-};
-```
-
-### Алиасы в тестах
-- Используются через `moduleNameMapper` в Jest
-- `"^src/(.*)$": "<rootDir>/src/$1"`
+1. **Transient Scope**: Каждый сервис получает свой экземпляр логгера
+2. **Debug логи**: Не записываются в файл, только в консоль
+3. **Logstash**: Только логи уровня `error` отправляются в Logstash
+4. **Graceful shutdown**: Автоматически закрывает все транспорты при остановке
+5. **Контекст**: Устанавливается через `setContext()` или передается в методы
+6. **Ротация**: Автоматическая по дате и размеру файла
+7. **Разделение по сервисам**: Каждый сервис пишет в свою директорию
 
 ## Зависимости
 
-### Основные
 - `winston` - логгер
 - `winston-daily-rotate-file` - ротация файлов
 - `winston-logstash` - отправка в Logstash
@@ -424,108 +255,3 @@ const mockLogger = {
 - `@nestjs/common` ^11.0.0
 - `reflect-metadata` ^0.1.13 || ^0.2.0
 - `rxjs` ^7.0.0
-
-## Частые проблемы и решения
-
-1. **Логи не записываются в файл**
-   - Проверьте права доступа к директории `{logDir}/{serviceName}`
-   - Убедитесь, что уровень логирования НЕ `debug` (debug только в консоль)
-
-2. **Не отправляется в Logstash**
-   - Проверьте `logstashHost` и `logstashPort` в конфигурации
-   - Проверьте доступность Logstash сервера
-   - Проверьте, что логируется уровень `error` (только error идут в Logstash)
-
-3. **Проблемы с инициализацией**
-   - Logger инициализируется автоматически в конструкторе
-   - Убедитесь, что `LoggerService` создается через DI NestJS
-
-4. **Тесты падают**
-   - Убедитесь, что Winston правильно замокан
-   - Проверьте, что `moduleNameMapper` настроен для `src/*` алиасов
-   - Проверьте асинхронные операции (close())
-
-5. **Проблемы с алиасами после сборки**
-   - Убедитесь, что установлен `tsc-alias` и запускается после `tsc --build`
-   - Проверьте, что в `tsconfig.json` настроены paths: `"src/*": ["src/*"]`
-
-6. **Проблемы с ESM импортами**
-   - Убедитесь, что `tsc-esm-fix` запускается после `tsc-alias`
-   - Проверьте, что в `package.json` указано `"type": "module"`
-   - Убедитесь, что все импорты в собранных файлах имеют расширение `.js`
-
-## Расширение функциональности
-
-### Добавление нового транспорта
-1. Создайте функцию `createXxxTransport()` в `winston.config.ts`
-2. Добавьте вызов в `createWinstonLogger()`
-3. Добавьте опции в `LoggerConfig` и `logger.types.ts`
-4. Добавьте тесты в `winston.config.spec.ts`
-
-### Добавление нового метода
-1. Добавьте сигнатуру в `logger.interface.ts`
-2. Реализуйте в `logger.service.ts`
-3. Добавьте тесты в `logger.service.spec.ts`
-
-## Для кодогенерации
-
-При генерации кода, использующего этот пакет:
-1. Всегда импортируйте напрямую класс `LoggerService` (default export)
-2. Используйте интерфейс `Logger` для типизации (опционально)
-3. Вызывайте `setContext()` в конструкторе сервиса
-4. Используйте `error()` для всех критических ошибок
-5. Используйте `debug()` для отладки (не попадет в файлы)
-6. Всегда регистрируйте через `LoggerModule.forRootAsync()`
-7. Настраивайте через `LoggerConfig` с обязательным `serviceName`
-
-## Пример полной настройки
-
-**AppModule:**
-```typescript
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from '@packages-packages/logger';
-
-@Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    LoggerModule.forRootAsync<[ConfigService]>({
-      useFactory: (configService: ConfigService) => ({
-        serviceName: configService.get('SERVICE_NAME') || 'unknown-service',
-        maxFiles: 30,
-        maxLinesPerFile: 10000,
-        logstashHost: configService.get('LOGSTASH_HOST'),
-        logstashPort: configService.get('LOGSTASH_PORT') ? parseInt(configService.get('LOGSTASH_PORT')) : undefined,
-        logDir: '/var/log/myapp', // Абсолютный путь
-      }),
-      inject: [ConfigService],
-    }),
-  ],
-})
-export class AppModule {}
-```
-
-**Сервис:**
-```typescript
-import { Injectable } from '@nestjs/common';
-import LoggerService from '@packages-packages/logger';
-
-@Injectable()
-export default class MyService {
-  constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('MyService');
-  }
-
-  async process(): Promise<void> {
-    this.logger.log('Processing started');
-    this.logger.debug('Debug info'); // Только в консоль
-    try {
-      // logic
-      this.logger.log('Processing completed');
-    } catch (error) {
-      this.logger.error('Processing failed', error.stack); // Консоль + файл + Logstash
-      throw error;
-    }
-  }
-}
-```

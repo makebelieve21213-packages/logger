@@ -6,7 +6,6 @@ src/
 # Тесты
 **/__tests__/
 **/*.spec.ts
-**/*.test.ts
 jest.config.ts
 coverage/
 
@@ -24,30 +23,18 @@ eslint.config.ts
 
 # Логи
 logs/
-test-logs/
-custom-logs/
-temp-absolute-logs/
+*-logs/
 
 # Docker
 Dockerfile
 .dockerignore
-docker-compose.yml
 
 # Git
 .git/
 .gitignore
-.gitattributes
 
 # IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
+.cursor/
 
 # CI/CD
 .github/
@@ -55,8 +42,3 @@ Thumbs.db
 # Зависимости (устанавливаются при установке пакета)
 node_modules/
 pnpm-lock.yaml
-
-# Временные файлы
-*.log
-*.tmp
-.cache/

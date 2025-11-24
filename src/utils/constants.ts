@@ -23,8 +23,10 @@ export function findPackageRoot(startPath: string): string {
 	return process.cwd();
 }
 
-// Находим корень пакета
-// Используем process.cwd() как стартовую точку - это работает и в тестах, и в продакшене
+/**
+ * Находим корень пакета
+ * Используем process.cwd() как стартовую точку - это работает и в тестах, и в продакшене
+ */
 export const PACKAGE_ROOT = findPackageRoot(process.cwd());
 
 /**
@@ -73,5 +75,5 @@ export const colors: Record<string, string> = {
 	reset: "\x1b[0m", // Сброс
 };
 
-// Injection token для конфигурации логгера
+// Токены инъекции для конфигурации логгера
 export const LOGGER_OPTIONS = Symbol("LOGGER_OPTIONS");

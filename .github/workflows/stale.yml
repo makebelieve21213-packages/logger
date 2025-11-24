@@ -53,4 +53,3 @@ jobs:
           operations-per-run: 30
           remove-stale-when-updated: true
           ascending: true
-

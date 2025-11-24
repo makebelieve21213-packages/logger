@@ -41,4 +41,3 @@ USER nodejs
 
 # Команда по умолчанию
 CMD ["node", "dist/index.js"]
-

@@ -26,14 +26,18 @@ export function createFileTransport(config: LoggerConfig): transport {
 	let baseLogDir: string;
 
 	if (config.logDir) {
-		// Если указан абсолютный путь - используем его как есть
-		// Если относительный - разрешаем относительно process.cwd()
+		/**
+		 * Если указан абсолютный путь - используем его как есть
+		 * Если относительный - разрешаем относительно process.cwd()
+		 */
 		baseLogDir = isAbsolute(config.logDir)
 			? config.logDir
 			: resolve(process.cwd(), config.logDir);
 	} else {
-		// По умолчанию используем process.cwd()/logs
-		// Это рабочая директория сервиса, который использует пакет
+		/**
+		 * По умолчанию используем process.cwd()/logs
+		 * Это рабочая директория сервиса, который использует пакет
+		 */
 		baseLogDir = resolve(process.cwd(), "logs");
 	}
 

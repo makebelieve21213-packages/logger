@@ -1,6 +1,8 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import parser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
+import prettierPlugin from "eslint-plugin-prettier";
+import prettierConfig from "eslint-config-prettier";
 
 import type { Linter } from "eslint";
 
@@ -30,16 +32,6 @@ const commonRules = {
 	"no-console": ["warn", { allow: ["warn", "error"] }],
 	"prefer-const": "error",
 	"no-var": "error",
-	"max-len": [
-		"error",
-		{
-			code: 100,
-			ignoreUrls: true,
-			ignoreStrings: true,
-			ignoreTemplateLiterals: true,
-			ignoreRegExpLiterals: true,
-		},
-	],
 
 	// Правила сортировки импортов
 	"import/order": [
@@ -75,6 +67,9 @@ const commonRules = {
 	],
 	"import/no-duplicates": "error",
 	"import/newline-after-import": ["error", { count: 1 }],
+
+	// Prettier правила
+	"prettier/prettier": "error",
 };
 
 export default [
@@ -105,9 +100,11 @@ export default [
 		plugins: {
 			"@typescript-eslint": tseslint,
 			import: importPlugin,
+			prettier: prettierPlugin,
 		},
 		rules: {
 			...commonRules,
+			...prettierConfig.rules,
 			// NestJS специфичные правила
 			"@typescript-eslint/interface-name-prefix": "off",
 			"@typescript-eslint/no-useless-constructor": "off",
@@ -131,9 +128,11 @@ export default [
 		plugins: {
 			"@typescript-eslint": tseslint,
 			import: importPlugin,
+			prettier: prettierPlugin,
 		},
 		rules: {
 			...commonRules,
+			...prettierConfig.rules,
 			// Более мягкие правила для тестов
 			"no-console": "off",
 			"@typescript-eslint/no-explicit-any": "warn",

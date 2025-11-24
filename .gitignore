@@ -17,15 +17,9 @@ logs/
 # Debug
 pnpm-debug.log*
 
-# Local env files
-.env
-.env.development
-.env.production
-
 # Typescript
 *.tsbuildinfo
 *.build.json
 
 # IDE
 .cursor/*
-
