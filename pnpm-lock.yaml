@@ -27,8 +27,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(winston@3.18.3)
       winston-logstash:
-        specifier: ^0.4.0
-        version: 0.4.0(winston@3.18.3)
+        specifier: ^1.2.1
+        version: 1.2.1(winston@3.18.3)
     devDependencies:
       '@nestjs/testing':
         specifier: ^11.0.1
@@ -2481,11 +2481,15 @@ packages:
     peerDependencies:
       winston: ^3
 
-  winston-logstash@0.4.0:
-    resolution: {integrity: sha512-P31aKNVlgPWBWH5Q1mpa/S871bzofFF708FwjncU4vhxXfSJCVFC48yEk/iBgXCK4OlZkXtBxzRPEE+3dAdbEA==}
-    engines: {node: '>=4'}
+  winston-logstash@1.2.1:
+    resolution: {integrity: sha512-sa8AxlL0vb5OdGJpL7ZitSIKq9GtdqrTN6eKYe6CoMTDmOIOvJyVAMiZGIvwxkGRbCNGoGKCvx9vxwkdI6OWww==}
+    engines: {node: '>=6'}
     peerDependencies:
-      winston: '>=0.7.3'
+      winston: ^0.7.3 || ^1.0.0 || ^2.0.0 || ^3.0.0
+
+  winston-transport@4.5.0:
+    resolution: {integrity: sha512-YpZzcUzBedhlTAfJg6vJDlyEai/IFMIVcaEZZyl3UXIl4gmqRpU7AE89AHLkbzLUsv0NVmw7ts+iztqKxxPW1Q==}
+    engines: {node: '>= 6.4.0'}
 
   winston-transport@4.9.0:
     resolution: {integrity: sha512-8drMJ4rkgaPo1Me4zD/3WLfI/zPdA9o2IipKODunnGDcuqbHwjsbB79ylv04LCGGzU0xQ6vTznOMpQGaLhhm6A==}
@@ -5429,9 +5433,16 @@ snapshots:
       winston: 3.18.3
       winston-transport: 4.9.0
 
-  winston-logstash@0.4.0(winston@3.18.3):
+  winston-logstash@1.2.1(winston@3.18.3):
     dependencies:
       winston: 3.18.3
+      winston-transport: 4.5.0
+
+  winston-transport@4.5.0:
+    dependencies:
+      logform: 2.7.0
+      readable-stream: 3.6.2
+      triple-beam: 1.4.1
 
   winston-transport@4.9.0:
     dependencies:
